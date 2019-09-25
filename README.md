@@ -1,4 +1,34 @@
-# Contentful export tool
+# contentful-export-aws
+
+This is a fork of the Contentful Export Tool to write the Contentful backup to AWS S3 instead of a local file system.
+
+## Usage
+
+```sh
+$ npm install @ewarren/contentful-export-aws
+```
+
+```js
+const contentfulExport = require('contentful-export')
+
+const options = {
+  spaceId: '<space_id>',
+  managementToken: '<content_management_api_key>',
+  awsAccessKey: '<aws_access_key',
+  awsSecret: '<aws_secret>',
+  awsRegion: 'us-east-1|<aws_region>',
+  awsBucket: '<aws_bucket>',
+  ...
+};
+
+(async function() {
+  await contentfulExport(options);
+
+  console.log('Completed export');
+})();
+```
+
+# Contentful export tool (Original README)
 
 [![npm](https://img.shields.io/npm/v/contentful-export.svg)](https://www.npmjs.com/package/contentful-export)
 [![Build Status](https://travis-ci.org/contentful/contentful-export.svg?branch=master)](https://travis-ci.org/contentful/contentful-export)
