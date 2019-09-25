@@ -24,9 +24,7 @@
     "test:integration:watch": "npm run test:integration -- --watch",
     "semantic-release": "semantic-release",
     "prepublishOnly": "npm run build",
-    "postpublish": "npm run clean",
-    "precommit": "npm run lint",
-    "prepush": "npm run test"
+    "postpublish": "npm run clean"
   },
   "repository": {
     "type": "git",
@@ -81,7 +79,6 @@
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
     "https-proxy-agent": "^2.2.1",
-    "husky": "^0.14.3",
     "jest": "^23.4.2",
     "nixt": "^0.5.0",
     "nock": "^9.4.3",
