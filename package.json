@@ -1,5 +1,5 @@
 {
-  "name": "@ewarren/contentful-export",
+  "name": "@mboadigital/contentful-export",
   "version": "1.0.0",
   "description": "this tool allows you to export a space to a JSON dump",
   "main": "dist/index.js",
