@@ -10,18 +10,30 @@ exports.default = initClient;
 
 var _contentfulManagement = require('contentful-management');
 
+var _contentful = require('contentful');
+
 var _logging = require('contentful-batch-libs/dist/logging');
 
 function logHandler(level, data) {
   _logging.logEmitter.emit(level, data);
 }
 
-function initClient(opts) {
+function initClient(opts, useCda = false) {
   const defaultOpts = {
     timeout: 10000,
     logHandler
   };
   const config = _extends({}, defaultOpts, opts);
+
+  if (useCda) {
+    const cdaConfig = {
+      space: config.spaceId,
+      accessToken: config.deliveryToken,
+      environment: config.environmentId,
+      resolveLinks: false
+    };
+    return (0, _contentful.createClient)(cdaConfig);
+  }
   return (0, _contentfulManagement.createClient)(config);
 }
 module.exports = exports['default'];

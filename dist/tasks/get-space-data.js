@@ -27,17 +27,19 @@ const MAX_ALLOWED_LIMIT = 1000;
 let pageLimit = MAX_ALLOWED_LIMIT;
 
 /**
- * Gets all the content from a space via the management API. This includes
+ * Gets all the content from a space via the delivery and management API. This includes
  * content in draft state.
  */
 function getFullSourceSpace({
   client,
+  cdaClient,
   spaceId,
   environmentId = 'master',
   skipContentModel,
   skipContent,
   skipWebhooks,
   skipRoles,
+  skipEditorInterfaces,
   includeDrafts,
   includeArchived,
   maxAllowedLimit,
@@ -79,18 +81,41 @@ function getFullSourceSpace({
     }),
     skip: ctx => skipContentModel || ctx.data.contentTypes.length === 0 && 'Skipped since no content types downloaded'
   }, {
-    title: 'Fetching content entries data',
+    title: 'Fetching Published content entries data on in last published version',
     task: (0, _listr3.wrapTask)((ctx, task) => {
-      return pagedGet({ source: ctx.environment, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => filterDrafts(items, includeDrafts)).then(items => filterArchived(items, includeArchived)).then(items => {
+      const source = cdaClient || ctx.environment;
+      queryEntries = queryEntries || {};
+      queryEntries.include = 0;
+      queryEntries.locale = '*';
+      return pagedGet({ source, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => filterDrafts(items, false)).then(items => filterArchived(items, false)).then(items => {
         ctx.data.entries = items;
       });
     }),
     skip: () => skipContent
   }, {
-    title: 'Fetching assets data',
+    title: 'Fetching Draft & Archived content entries data',
     task: (0, _listr3.wrapTask)((ctx, task) => {
-      return pagedGet({ source: ctx.environment, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => filterDrafts(items, includeDrafts)).then(items => filterArchived(items, includeArchived)).then(items => {
+      return pagedGet({ source: ctx.environment, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => filterPublished(items)).then(items => {
+        ctx.data.entries = [...ctx.data.entries, ...items];
+      });
+    }),
+    skip: () => skipContent
+  }, {
+    title: 'Fetching Published assets data on in last published version',
+    task: (0, _listr3.wrapTask)((ctx, task) => {
+      const source = cdaClient || ctx.environment;
+      queryAssets = queryAssets || {};
+      queryAssets.locale = '*';
+      return pagedGet({ source, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => filterDrafts(items, false)).then(items => filterArchived(items, false)).then(items => {
         ctx.data.assets = items;
+      });
+    }),
+    skip: () => skipContent
+  }, {
+    title: 'Fetching Draft & Archived assets data',
+    task: (0, _listr3.wrapTask)((ctx, task) => {
+      return pagedGet({ source: ctx.environment, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => filterPublished(items)).then(items => {
+        ctx.data.assets = [...ctx.data.assets, ...items];
       });
     }),
     skip: () => skipContent
@@ -167,6 +192,10 @@ function pagedGet({ source, method, skip = 0, aggregatedResponse = null, query =
 
 function extractItems(response) {
   return response.items;
+}
+
+function filterPublished(items) {
+  return items.filter(item => !!item.sys.publishedVersion || !!item.sys.publishedAt);
 }
 
 function filterDrafts(items, includeDrafts) {

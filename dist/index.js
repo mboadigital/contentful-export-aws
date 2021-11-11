@@ -89,7 +89,12 @@ function runContentfulExport(params) {
     title: 'Initialize client',
     task: (0, _listr3.wrapTask)(ctx => {
       try {
+        // CMA client
         ctx.client = (0, _initClient2.default)(options);
+        if (options.deliveryToken) {
+          // CDA client for fetching only public entries
+          ctx.cdaClient = (0, _initClient2.default)(options, true);
+        }
         return _bluebird2.default.resolve();
       } catch (err) {
         return _bluebird2.default.reject(err);
@@ -100,12 +105,14 @@ function runContentfulExport(params) {
     task: ctx => {
       return (0, _getSpaceData2.default)({
         client: ctx.client,
+        cdaClient: ctx.cdaClient,
         spaceId: options.spaceId,
         environmentId: options.environmentId,
         maxAllowedLimit: options.maxAllowedLimit,
         includeDrafts: options.includeDrafts,
         includeArchived: options.includeArchived,
         skipContentModel: options.skipContentModel,
+        skipEditorInterfaces: options.skipEditorInterfaces,
         skipContent: options.skipContent,
         skipWebhooks: options.skipWebhooks,
         skipRoles: options.skipRoles,
