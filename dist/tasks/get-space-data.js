@@ -88,9 +88,9 @@ function getFullSourceSpace({
       queryEntries.include = 0;
       queryEntries.locale = '*';
       return pagedGet({ source, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => {
-        // items.map(item => {
-        //   item.sys.publishedVersion = 1
-        // })
+        items.map(item => {
+          item.sys.publishedVersion = 1;
+        });
         ctx.data.entries = items;
       });
     }),
@@ -110,9 +110,9 @@ function getFullSourceSpace({
       queryAssets = queryAssets || {};
       queryAssets.locale = '*';
       return pagedGet({ source, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => {
-        // items.map(item => {
-        //   item.sys.publishedVersion = 1
-        // })
+        items.map(item => {
+          item.sys.publishedVersion = 1;
+        });
         ctx.data.assets = items;
       });
     }),
