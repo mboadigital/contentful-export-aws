@@ -83,11 +83,14 @@ function getFullSourceSpace({
   }, {
     title: 'Fetching Published content entries data on in last published version',
     task: (0, _listr3.wrapTask)((ctx, task) => {
-      const source = cdaClient || ctx.environment;
+      const source = cdaClient;
       queryEntries = queryEntries || {};
       queryEntries.include = 0;
       queryEntries.locale = '*';
-      return pagedGet({ source, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => filterDrafts(items, false)).then(items => filterArchived(items, false)).then(items => {
+      return pagedGet({ source, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => {
+        items.map(item => {
+          item.sys.publishedVersion = 1;
+        });
         ctx.data.entries = items;
       });
     }),
@@ -96,7 +99,7 @@ function getFullSourceSpace({
     title: 'Fetching Draft & Archived content entries data',
     task: (0, _listr3.wrapTask)((ctx, task) => {
       return pagedGet({ source: ctx.environment, method: 'getEntries', query: queryEntries }).then(extractItems).then(items => filterPublished(items)).then(items => {
-        ctx.data.entries = [...ctx.data.entries, ...items];
+        ctx.data.entries = ctx.data.entries.concat(items);
       });
     }),
     skip: () => skipContent
@@ -106,7 +109,10 @@ function getFullSourceSpace({
       const source = cdaClient || ctx.environment;
       queryAssets = queryAssets || {};
       queryAssets.locale = '*';
-      return pagedGet({ source, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => filterDrafts(items, false)).then(items => filterArchived(items, false)).then(items => {
+      return pagedGet({ source, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => {
+        items.map(item => {
+          item.sys.publishedVersion = 1;
+        });
         ctx.data.assets = items;
       });
     }),
@@ -115,7 +121,7 @@ function getFullSourceSpace({
     title: 'Fetching Draft & Archived assets data',
     task: (0, _listr3.wrapTask)((ctx, task) => {
       return pagedGet({ source: ctx.environment, method: 'getAssets', query: queryAssets }).then(extractItems).then(items => filterPublished(items)).then(items => {
-        ctx.data.assets = [...ctx.data.assets, ...items];
+        ctx.data.assets = ctx.data.assets.concat(items);
       });
     }),
     skip: () => skipContent
@@ -195,14 +201,15 @@ function extractItems(response) {
 }
 
 function filterPublished(items) {
-  return items.filter(item => !!item.sys.publishedVersion || !!item.sys.publishedAt);
+  return items.filter(item => !item.sys.publishedVersion);
 }
 
-function filterDrafts(items, includeDrafts) {
-  return includeDrafts ? items : items.filter(item => !!item.sys.publishedVersion || !!item.sys.archivedVersion);
-}
+// function filterDrafts (items, includeDrafts) {
+//   return includeDrafts ? items : items.filter((item) => !!item.sys.publishedVersion || !!item.sys.archivedVersion)
+// }
 
-function filterArchived(items, includeArchived) {
-  return includeArchived ? items : items.filter(item => !item.sys.archivedVersion);
-}
+// function filterArchived (items, includeArchived) {
+//   return includeArchived ? items : items.filter((item) => !item.sys.archivedVersion)
+// }
+
 module.exports = exports['default'];
